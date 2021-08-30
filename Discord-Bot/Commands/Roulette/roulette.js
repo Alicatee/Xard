@@ -25,8 +25,6 @@ class Roulette extends Command{
         } );
     }
     async run(message,args){
-        // add Utils function to verify if the amount is valid
-        // check for: all, %, abreviation(ends with k) or full amount
         
         const amount = args[0]
         const values = await this.client.utils.getRouletteAmount(message,amount)
