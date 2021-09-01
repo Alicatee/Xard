@@ -17,9 +17,9 @@ class Roulette extends Command {
             usage: "roulette amount",
             example: ["100"],
             args: true,
-            category: "Gamble",
+            category: "Roulette",
             cooldown: 0,
-            aliases: ["gamble"],
+            aliases: ["Gamble"],
             userPerms: ["SEND_MESSAGES"],
             guildOnly: false,
         });
