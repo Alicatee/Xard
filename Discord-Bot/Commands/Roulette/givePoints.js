@@ -8,7 +8,7 @@ class GivePoints extends Command {
       usage: "givepoints amount",
       example: ["100"],
       args: true,
-      category: "Gamble",
+      category: "Roulette",
       cooldown: 0,
       userPerms: ["SEND_MESSAGES"],
       guildOnly: false,
@@ -16,7 +16,7 @@ class GivePoints extends Command {
     });
   }
   async run(message, args) {
- 
+
     const amount = args[0]
     const values = await this.client.utils.getRouletteAmount(message, amount)
 
@@ -27,7 +27,7 @@ class GivePoints extends Command {
       return
 
     const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language].roulette
-  
+
   }
 }
 
