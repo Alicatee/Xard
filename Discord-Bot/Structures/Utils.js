@@ -5,15 +5,18 @@ class Utils {
         this.client = client
     }
     getUserKey(message) {
-        return `${message.guild ? message.guild.id : "dm"}-${message.author.id}`
+        return `${message.guild ? message.guildId : "dm"}-${message.author.id}`
     }
     getRouletteAmount(message, betValue) {
 
-        const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language].roulette
-        const betValueInt = parseInt(betValue)
-        const isPercentage = betValue.slice(-1) == "%"
+        const language = this.client.languageObj.roulette
 
-        if ((isNaN(betValue) || betValueInt <= 0) && betValue != "all" && !isPercentage) {
+        const isPercentage = betValue.slice(-1) == "%"
+        const isK = betValue.slice(-1) == "k"
+
+        const betValueInt = parseInt(betValue)
+
+        if ((betValueInt <= 0 || isNaN(betValueInt)) && betValue != 'all') {
             return message.reply(language.invalidRouletteAmount)
         }
 
@@ -21,33 +24,65 @@ class Utils {
 
         const playerData = this.client.membersDataCache[message.author.id]
         const playerBalance = playerData.roulettePoints
-        let finalBetAmount = betValueInt
 
+        let finalBetAmount = betValueInt
+    
         if (isPercentage && percentage <= 100) {
             finalBetAmount = Math.round(playerBalance * (percentage / 100))
-        }
-        if (betValueInt > playerBalance) {
-            return message.reply(language.notEnoughPoints)
-        }
-        if (betValue == "all") {
+        } else if (isK) {
+            finalBetAmount = Math.round(betValueInt * 1000)
+        } else if (betValue == "all") {
             finalBetAmount = playerBalance
         }
+        
+        if (finalBetAmount > playerBalance)
+            return message.reply(language.notEnoughPoints)
 
         return { playerBalance, finalBetAmount }
     }
     async giveRoulettePoints(id, points, message) {
+        const playerData = this.client.membersDataCache[id]
+
+        if (!playerData)
+            return
+
         try {
             await this.client.Database.Member.findOneAndUpdate({
                 _id: id
             },
                 {
-                    roulettePoints: points
+                    roulettePoints: playerData.roulettePoints + points
                 }, { new: true })
         } catch (error) {
             console.log(error)
-            const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language].messageCreate
+            const language = this.client.languageObj.messageCreate
             message.reply(language.failedToLoadData)
             return
+        }
+    }
+    async getData(message, action, model, info) {
+        try {
+            const Data = await this.client.Database[model][action](info)
+
+            return Data
+
+        } catch (error) {
+            console.log(error)
+
+            const language = this.client.languageObj ? this.client.languageObj.messageCreate : this.client.languages["EN"].messageCreate
+            message.reply(language.failedToLoadData)
+        }
+    }
+    async updateData(message, model, findInfo, updateInfo, New) {
+        try {
+            const Data = await this.client.Database[model].findOneAndUpdate(findInfo, updateInfo, { new: New || false })
+
+            return Data
+        } catch (error) {
+            console.log(error)
+
+            const language = this.client.languageObj ? this.client.languageObj.messageCreate : this.client.languages["EN"].messageCreate
+            message.reply(language.failedToLoadData)
         }
     }
 }

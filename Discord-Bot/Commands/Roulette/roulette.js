@@ -1,11 +1,11 @@
 const Command = require('../../Structures/Command')
 
 const options = {
-    ["Won"]: (playerBalance, finalAmount) => {
-        return playerBalance += finalAmount
+    ["Won"]: (finalAmount) => {
+        return finalAmount
     },
-    ["Lost"]: (playerBalance, finalAmount) => {
-        return playerBalance -= finalAmount
+    ["Lost"]: (finalAmount) => {
+        return -finalAmount
     },
 }
 
@@ -37,13 +37,13 @@ class Roulette extends Command {
         if (isNaN(playerBalance) || isNaN(finalBetAmount))
             return
 
-        const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language].roulette
+        const language = this.client.languageObj.roulette
         const chance = Math.random()
         let win = "Won"
         if (chance >= 0.5)
             win = "Lost"
 
-        utils.giveRoulettePoints(message.author.id, options[win](playerBalance, finalBetAmount), message).then(() => {
+        utils.giveRoulettePoints(message.author.id, options[win](finalBetAmount), message).then(() => {
             message.channel.send(language[win](message.author.id, playerBalance, finalBetAmount))
         })
     }
