@@ -5,29 +5,37 @@ class GivePoints extends Command {
     super(client, {
       name: "GivePoints",
       description: "Give your points.",
-      usage: "givepoints amount",
+      usage: "givepoints [user] [amount]",
       example: ["100"],
       args: true,
       category: "Roulette",
       cooldown: 0,
       userPerms: ["SEND_MESSAGES"],
       guildOnly: false,
-      _globalDisabled: true
+      _globalDisabled: false
     });
   }
-  async run(message, args) {
+  run(message, args) {
+    const amount = args[1]
+    const playerData = this.client.utils.getRouletteAmount(message, amount)
 
-    const amount = args[0]
-    const values = await this.client.utils.getRouletteAmount(message, amount)
+    const playerBalance = playerData.playerBalance
+    const finalBetAmount = playerData.finalBetAmount
 
-    const playerBalance = values.playerBalance
-    const finalAmount = values.finalAmount
+    const mentionedUser = message.mentions.users ? message.mentions.users.first() : null
+    const mentionedUserData = this.client.membersDataCache[mentionedUser.id]
 
-    if (isNaN(playerBalance) || isNaN(finalAmount))
+    if (isNaN(playerBalance) || isNaN(finalBetAmount) || !mentionedUserData)
       return
 
-    const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language].roulette
-
+    const language = this.client.languageObj.givePoints
+    
+    Promise.all([
+      this.client.utils.giveRoulettePoints(message.author.id, -finalBetAmount, message),
+      this.client.utils.giveRoulettePoints(mentionedUser.id, finalBetAmount, message)
+    ]).then(() => {
+      message.channel.send(language.gavePoints(finalBetAmount, playerBalance, message.author.id, mentionedUser.id))
+    })
   }
 }
 

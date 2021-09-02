@@ -14,13 +14,21 @@ class Points extends Command {
     });
   }
   run(message, args) {
-    const playerData = this.client.membersDataCache[message.author.id]
-    const language = this.client.languages[this.client.guildsDataCache[message.guild.id].language]
+    const mentionedUser = message.mentions.users ? message.mentions.users.first() : null
+
+    let playerData
+    if(!mentionedUser){
+      playerData = this.client.membersDataCache[message.author.id]
+    }else{
+      playerData = this.client.membersDataCache[mentionedUser.id]
+    }
+     
+    const language = this.client.languageObj
     
     if(!playerData)
       return message.reply(language.messageCreate.failedToLoadData)
     
-    message.channel.send(language.points.pointsAmount(message.author.id,playerData.roulettePoints))
+    message.channel.send(language.points.pointsAmount(playerData.id,playerData.roulettePoints))
   }
 }
 
